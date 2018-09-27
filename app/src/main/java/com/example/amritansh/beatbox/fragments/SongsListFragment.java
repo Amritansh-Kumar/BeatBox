@@ -81,6 +81,8 @@ public class SongsListFragment extends Fragment implements SongClickListner {
         Fragment playSongFragment = new PlaySongFragment();
         Bundle bundle = new Bundle();
         bundle.putString("url", song.getSongUri());
+        bundle.putString("title", song.getTitle());
+        bundle.putString("artist", song.getartist());
         playSongFragment.setArguments(bundle);
 
         transaction.replace(R.id.container, playSongFragment);

@@ -1,19 +1,15 @@
 package com.example.amritansh.beatbox.fragments;
 
-import android.content.Context;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -22,8 +18,6 @@ import com.example.amritansh.beatbox.R;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -39,12 +33,16 @@ public class PlaySongFragment extends Fragment {
     TextView leftTime;
     @BindView(R.id.right_time)
     TextView rightTime;
+    @BindView(R.id.song_title)
+    TextView songTitle;
+    @BindView(R.id.song_artist)
+    TextView songArtist;
 
     final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:ss");
     private MediaPlayer mediaPlayer;
-    private Thread thread;
+    private final Handler seekHandler = new Handler();
 
-    private boolean isPlay = true;
+    private boolean isPlaying = true;
 
     public PlaySongFragment() {
     }
@@ -61,8 +59,12 @@ public class PlaySongFragment extends Fragment {
         ButterKnife.bind(this, view);
 
         Bundle bundle = getArguments();
+        songTitle.setText(bundle.getString("title"));
+        songArtist.setText(bundle.getString("artist"));
         String songUri = bundle.getString("url");
         init(songUri);
+
+        playSong();
     }
 
     private void init(String songUri) {
@@ -98,8 +100,8 @@ public class PlaySongFragment extends Fragment {
                 int currentTime = mediaPlayer.getCurrentPosition();
                 int duration = mediaPlayer.getDuration();
 
-                leftTime.setText(dateFormat.format(new Date(currentTime)));
-                rightTime.setText(dateFormat.format(new Date(duration-currentTime)));
+                leftTime.setText(dateFormat.format(new Date(currentTime - (30*60*1000))));
+                rightTime.setText(dateFormat.format(new Date(duration-currentTime - (30*60*1000))));
             }
 
             @Override
@@ -143,20 +145,23 @@ public class PlaySongFragment extends Fragment {
 
     @OnClick(R.id.play_button)
     public void play(){
-        if (isPlay) {
-            isPlay = false;
-            playButton.setBackgroundResource(R.drawable.icon_pause);
-            mediaPlayer.start();
-            updateThread();
-        }else {
-            isPlay = true;
-            playButton.setBackgroundResource(R.drawable.icon_play);
+        if (isPlaying) {
+            isPlaying = false;
             mediaPlayer.pause();
+            playButton.setBackgroundResource(R.drawable.icon_play);
+        }else {
+            isPlaying = true;
+            playButton.setBackgroundResource(R.drawable.icon_pause);
+            playSong();
         }
     }
 
+    private void playSong(){
+        mediaPlayer.start();
+        updateThread();
+    }
+
     public void updateThread(){
-        final Handler seekHandler = new Handler();
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -165,11 +170,19 @@ public class PlaySongFragment extends Fragment {
                 int currentTime = mediaPlayer.getCurrentPosition();
                 int duration = mediaPlayer.getDuration();
 
-                leftTime.setText(dateFormat.format(new Date(currentTime)));
-                rightTime.setText(dateFormat.format(new Date(duration-currentTime)));
+                leftTime.setText(dateFormat.format(new Date(currentTime - (30*60*1000))));
+                rightTime.setText(dateFormat.format(new Date(duration-currentTime - (30*60*1000))));
 
-                seekHandler.postDelayed(this, 50);
+                seekHandler.postDelayed(this, 1000);
             }
         });
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        seekHandler.removeCallbacksAndMessages(null);
+        mediaPlayer.release();
+        mediaPlayer = null;
     }
 }

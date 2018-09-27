@@ -91,7 +91,7 @@
         android:layout_marginRight="16dp"
         android:layout_marginBottom="8dp"
         android:text="Agar Tum Sath Ho"
-        android:textSize="22sp"
+        android:textSize="14sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toTopOf="@+id/song_artist"
         app:layout_constraintEnd_toEndOf="parent"
@@ -110,7 +110,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginBottom="4dp"
         android:text="Arijit Singh"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toTopOf="@+id/seekBar"
         app:layout_constraintEnd_toEndOf="parent"
@@ -171,7 +171,7 @@
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_weight="1"
-            android:background="@drawable/icon_play" />
+            android:background="@drawable/icon_pause" />
 
         <Button
             android:id="@+id/next_btn"
