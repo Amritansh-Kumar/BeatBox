@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -14,10 +15,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.example.amritansh.beatbox.R;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,7 +35,14 @@ public class PlaySongFragment extends Fragment {
     Button playButton;
     @BindView(R.id.seekBar)
     SeekBar seekBar;
+    @BindView(R.id.left_time)
+    TextView leftTime;
+    @BindView(R.id.right_time)
+    TextView rightTime;
+
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:ss");
     private MediaPlayer mediaPlayer;
+    private Thread thread;
 
     private boolean isPlay = true;
 
@@ -70,12 +81,12 @@ public class PlaySongFragment extends Fragment {
 
         seekBar.setMax(mediaPlayer.getDuration());
 
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                seekBar.setProgress(mediaPlayer.getCurrentPosition());
-            }
-        },0, 200);
+//        new Timer().scheduleAtFixedRate(new TimerTask() {
+//            @Override
+//            public void run() {
+//                seekBar.setProgress(mediaPlayer.getCurrentPosition());
+//            }
+//        },0, 200);
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -83,6 +94,12 @@ public class PlaySongFragment extends Fragment {
                 if (mediaPlayer!=null && fromUser){
                     mediaPlayer.seekTo(progress);
                 }
+
+                int currentTime = mediaPlayer.getCurrentPosition();
+                int duration = mediaPlayer.getDuration();
+
+                leftTime.setText(dateFormat.format(new Date(currentTime)));
+                rightTime.setText(dateFormat.format(new Date(duration-currentTime)));
             }
 
             @Override
@@ -130,10 +147,29 @@ public class PlaySongFragment extends Fragment {
             isPlay = false;
             playButton.setBackgroundResource(R.drawable.icon_pause);
             mediaPlayer.start();
+            updateThread();
         }else {
             isPlay = true;
             playButton.setBackgroundResource(R.drawable.icon_play);
             mediaPlayer.pause();
         }
+    }
+
+    public void updateThread(){
+        final Handler seekHandler = new Handler();
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                seekBar.setProgress(mediaPlayer.getCurrentPosition());
+
+                int currentTime = mediaPlayer.getCurrentPosition();
+                int duration = mediaPlayer.getDuration();
+
+                leftTime.setText(dateFormat.format(new Date(currentTime)));
+                rightTime.setText(dateFormat.format(new Date(duration-currentTime)));
+
+                seekHandler.postDelayed(this, 50);
+            }
+        });
     }
 }
