@@ -13,10 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 
 import com.example.amritansh.beatbox.R;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,11 +27,12 @@ import butterknife.OnClick;
 
 public class PlaySongFragment extends Fragment {
 
-    @BindView(R.id.play)
-    ImageView playButton;
-//    @BindView(R.id.pause)
-//    Button pauseButton;
+    @BindView(R.id.play_button)
+    Button playButton;
+    @BindView(R.id.seekBar)
+    SeekBar seekBar;
     private MediaPlayer mediaPlayer;
+
     private boolean isPlay = true;
 
     public PlaySongFragment() {
@@ -58,24 +62,78 @@ public class PlaySongFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        initSeekbar();
     }
 
-    @OnClick(R.id.play)
+    private void initSeekbar() {
+
+        seekBar.setMax(mediaPlayer.getDuration());
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                seekBar.setProgress(mediaPlayer.getCurrentPosition());
+            }
+        },0, 200);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (mediaPlayer!=null && fromUser){
+                    mediaPlayer.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+
+//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+//
+//                if (mediaPlayer != null && b) {
+//
+//                    mediaPlayer.seekTo(i);
+//
+//                }
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//                Log.i("Seek", "ProgressBar touched");
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//                Log.i("Seek", "progress stopped");
+//            }
+//
+//        });
+
+    }
+
+    @OnClick(R.id.play_button)
     public void play(){
         if (isPlay) {
             isPlay = false;
-            playButton.setImageResource(R.drawable.icon_pause);
+            playButton.setBackgroundResource(R.drawable.icon_pause);
             mediaPlayer.start();
         }else {
             isPlay = true;
-            playButton.setImageResource(R.drawable.icon_play);
+            playButton.setBackgroundResource(R.drawable.icon_play);
             mediaPlayer.pause();
         }
     }
-
-    @OnClick(R.id.pause)
-    public void pause(){
-        mediaPlayer.pause();
-    }
-
 }
