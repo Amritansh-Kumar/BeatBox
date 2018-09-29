@@ -89,4 +89,10 @@ public class SongsListFragment extends Fragment implements SongClickListner {
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        getActivity().finish();
+    }
 }

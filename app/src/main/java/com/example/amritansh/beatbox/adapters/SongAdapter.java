@@ -19,7 +19,7 @@ import butterknife.OnClick;
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongsHolder> {
 
     private ArrayList<Song> songsList;
-    private static final int ANIMATION_DURATION = 2000;
+    private static final int ANIMATION_DURATION = 500;
     private SongClickListner songClickListner;
 
     public SongAdapter(SongClickListner context){
@@ -37,7 +37,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongsHolder> {
     @Override
     public void onBindViewHolder(@NonNull SongsHolder songsHolder, int i) {
         songsHolder.fillDetails(songsList.get(i));
-        YoYo.with(Techniques.SlideInDown)
+        YoYo.with(Techniques.FadeIn)
             .duration(ANIMATION_DURATION)
             .playOn(songsHolder.itemView);
     }
@@ -73,7 +73,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongsHolder> {
 
         public void fillDetails(Song song){
             this.song = song;
-            songImage.setBackgroundResource(R.drawable.ic_launcher_background);
+//            songImage.setImageResource(R.drawable.ic_launcher_background);
             songTitle.setText(song.getTitle());
             artist.setText(song.getartist());
         }

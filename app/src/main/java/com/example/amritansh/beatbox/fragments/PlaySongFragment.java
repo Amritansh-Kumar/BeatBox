@@ -1,24 +1,26 @@
 package com.example.amritansh.beatbox.fragments;
 
-import android.media.MediaPlayer;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
 import com.example.amritansh.beatbox.R;
-
-import java.io.IOException;
+import com.example.amritansh.beatbox.services.PlaySongService;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -38,11 +40,17 @@ public class PlaySongFragment extends Fragment {
     @BindView(R.id.song_artist)
     TextView songArtist;
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:ss");
-    private MediaPlayer mediaPlayer;
+    private ServiceConnection serviceConnection;
+
+    private PlaySongService.MusicBinder musicBinder;
+    private PlaySongService playSongService;
+    private boolean mBound = false;
+
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:ss");
     private final Handler seekHandler = new Handler();
 
     private boolean isPlaying = true;
+    private boolean newPlay = true;
 
     public PlaySongFragment() {
     }
@@ -62,46 +70,47 @@ public class PlaySongFragment extends Fragment {
         songTitle.setText(bundle.getString("title"));
         songArtist.setText(bundle.getString("artist"));
         String songUri = bundle.getString("url");
-        init(songUri);
 
-        playSong();
+        final Intent intent = new Intent(getActivity(), PlaySongService.class);
+        intent.putExtra("music", songUri);
+
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                musicBinder = (PlaySongService.MusicBinder) service;
+                playSongService = musicBinder.getService();
+                mBound = true;
+                initSeekbar();
+                updateThread();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                mBound = false;
+            }
+        };
+
+        getActivity().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        getActivity().startService(intent);
     }
 
-    private void init(String songUri) {
-        mediaPlayer = new MediaPlayer();
-        try {
-            mediaPlayer.setDataSource(songUri);
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        initSeekbar();
-    }
-
+    // initializing the seekbar
     private void initSeekbar() {
+        seekBar.setMax(playSongService.getDuration());
 
-        seekBar.setMax(mediaPlayer.getDuration());
-
-//        new Timer().scheduleAtFixedRate(new TimerTask() {
-//            @Override
-//            public void run() {
-//                seekBar.setProgress(mediaPlayer.getCurrentPosition());
-//            }
-//        },0, 200);
-
+        // seekbar change listner
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (mediaPlayer!=null && fromUser){
-                    mediaPlayer.seekTo(progress);
+                if (playSongService.getMediaPlayer() != null && fromUser) {
+                    playSongService.seekMediaPlayer(progress);
                 }
 
-                int currentTime = mediaPlayer.getCurrentPosition();
-                int duration = mediaPlayer.getDuration();
+                int currentTime = playSongService.getCurrentPosition();
+                int duration = playSongService.getDuration();
 
-                leftTime.setText(dateFormat.format(new Date(currentTime - (30*60*1000))));
-                rightTime.setText(dateFormat.format(new Date(duration-currentTime - (30*60*1000))));
+                leftTime.setText(dateFormat.format(new Date(currentTime - (30 * 60 * 1000))));
+                rightTime.setText(dateFormat.format(new Date(duration - currentTime - (30 * 60 * 1000))));
             }
 
             @Override
@@ -114,75 +123,49 @@ public class PlaySongFragment extends Fragment {
 
             }
         });
-
-
-//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-//
-//                if (mediaPlayer != null && b) {
-//
-//                    mediaPlayer.seekTo(i);
-//
-//                }
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//                Log.i("Seek", "ProgressBar touched");
-//            }
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//                Log.i("Seek", "progress stopped");
-//            }
-//
-//        });
-
     }
 
     @OnClick(R.id.play_button)
-    public void play(){
+    public void play() {
         if (isPlaying) {
             isPlaying = false;
-            mediaPlayer.pause();
+            playSongService.pauseAudio();
             playButton.setBackgroundResource(R.drawable.icon_play);
-        }else {
+        } else {
             isPlaying = true;
             playButton.setBackgroundResource(R.drawable.icon_pause);
-            playSong();
+            playSongService.playAudio();
         }
     }
 
-    private void playSong(){
-        mediaPlayer.start();
-        updateThread();
-    }
-
-    public void updateThread(){
+    // updating seekbar with as music plays
+    public void updateThread() {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                seekBar.setProgress(mediaPlayer.getCurrentPosition());
+                seekBar.setMax(playSongService.getDuration());
+                if (newPlay){
+                    seekBar.setProgress(0);
+                    newPlay = false;
+                }else {
+                    seekBar.setProgress(playSongService.getCurrentPosition());
+                }
 
-                int currentTime = mediaPlayer.getCurrentPosition();
-                int duration = mediaPlayer.getDuration();
+                int currentTime = playSongService.getCurrentPosition();
+                int duration =  playSongService.getDuration();
 
-                leftTime.setText(dateFormat.format(new Date(currentTime - (30*60*1000))));
-                rightTime.setText(dateFormat.format(new Date(duration-currentTime - (30*60*1000))));
+                leftTime.setText(dateFormat.format(new Date(currentTime - (30 * 60 * 1000))));
+                rightTime.setText(dateFormat.format(new Date(duration - currentTime - (30 * 60 * 1000))));
 
-                seekHandler.postDelayed(this, 1000);
+                seekHandler.postDelayed(this, 500);
             }
         });
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onStop() {
+        super.onStop();
         seekHandler.removeCallbacksAndMessages(null);
-        mediaPlayer.release();
-        mediaPlayer = null;
+        getActivity().unbindService(serviceConnection);
     }
 }
