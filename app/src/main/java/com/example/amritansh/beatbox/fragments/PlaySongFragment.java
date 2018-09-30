@@ -17,8 +17,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.example.amritansh.beatbox.Activities.SongListActivity;
 import com.example.amritansh.beatbox.R;
 import com.example.amritansh.beatbox.services.PlaySongService;
+import com.example.amritansh.beatbox.store.StorageUtil;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import butterknife.BindView;
@@ -45,6 +49,7 @@ public class PlaySongFragment extends Fragment {
     private PlaySongService.MusicBinder musicBinder;
     private PlaySongService playSongService;
     private boolean mBound = false;
+    private StorageUtil util = null;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("mm:ss");
     private final Handler seekHandler = new Handler();
@@ -78,9 +83,10 @@ public class PlaySongFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
 
+        util = new StorageUtil(getContext());
+
         Bundle bundle = getArguments();
-        songTitle.setText(bundle.getString("title"));
-        songArtist.setText(bundle.getString("artist"));
+        updateSongData();
         String songUri = bundle.getString("url");
 
         Log.d("console log", "songUri is : " + songUri );
@@ -152,6 +158,17 @@ public class PlaySongFragment extends Fragment {
         }
     }
 
+    @OnClick(R.id.next_btn)
+    public void playNext(){
+        playSongService.playNextSong();
+        updateSongData();
+    }
+
+    @OnClick(R.id.prev_btn)
+    public void playPrev(){
+        playSongService.playPrevSong();
+        updateSongData();
+    }
     // updating seekbar with as music plays
     public void updateThread() {
         getActivity().runOnUiThread(new Runnable() {
@@ -176,6 +193,11 @@ public class PlaySongFragment extends Fragment {
         });
     }
 
+    private void updateSongData(){
+        songTitle.setText(util.getCurrentSong().getTitle());
+        songArtist.setText(util.getCurrentSong().getartist());
+    }
+
     @Override
     public void onStop() {
         super.onStop();
@@ -186,6 +208,7 @@ public class PlaySongFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getActivity().finish();
+        Intent intent = new Intent(getActivity(), SongListActivity.class);
+        getActivity().startActivity(intent);
     }
 }

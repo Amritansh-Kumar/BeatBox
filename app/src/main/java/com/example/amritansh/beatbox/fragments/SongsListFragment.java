@@ -1,24 +1,16 @@
 package com.example.amritansh.beatbox.fragments;
 
 
-import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.amritansh.beatbox.Activities.PlaySongActivity;
 import com.example.amritansh.beatbox.R;
@@ -26,8 +18,8 @@ import com.example.amritansh.beatbox.adapters.SongAdapter;
 import com.example.amritansh.beatbox.interfaces.SongClickListner;
 import com.example.amritansh.beatbox.models.LoadSongs;
 import com.example.amritansh.beatbox.models.Song;
+import com.example.amritansh.beatbox.store.StorageUtil;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -43,6 +35,7 @@ public class SongsListFragment extends Fragment implements SongClickListner {
     RecyclerView songsRecycler;
 
     private SongAdapter adapter;
+    public static ArrayList<Song> songsList;
 
     public SongsListFragment() {
 
@@ -74,27 +67,30 @@ public class SongsListFragment extends Fragment implements SongClickListner {
         songsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
 
         LoadSongs loadSongs = new LoadSongs(getActivity());
-        ArrayList<Song> songsList = loadSongs.getSongs();
+        songsList = loadSongs.getSongs();
 
         adapter.updateSongsList(songsList);
     }
 
     @Override
-    public void onSongClickListner(Song song) {
+    public void onSongClickListner(Song song, int index) {
 
-//        FragmentManager manager = getFragmentManager();
-//        FragmentTransaction transaction = manager.beginTransaction();
-//
-//        Fragment playSongFragment = new PlaySongFragment();
-//        Bundle bundle = new Bundle();
-//        bundle.putString("url", song.getSongUri());
-//        bundle.putString("title", song.getTitle());
-//        bundle.putString("artist", song.getartist());
-//        playSongFragment.setArguments(bundle);
-//
-//        transaction.replace(R.id.container, playSongFragment);
-//        transaction.addToBackStack(null);
-//        transaction.commit();
+        // store current and next song
+        StorageUtil util = new StorageUtil(getContext());
+        util.storeCurrentSongIndex(index);
+        util.storeCurrentSong(song);
+
+        int nextSongIndex = index+1;
+        if (index == songsList.size()-1){
+            nextSongIndex = 0;
+        }
+        util.storeNextSong(songsList.get(nextSongIndex));
+
+        int prevSongIndex = index-1;
+        if (index == 0){
+            prevSongIndex = songsList.size()-1;
+        }
+        util.storePrevSong(songsList.get(prevSongIndex));
 
         Intent intent = new Intent(getActivity(), PlaySongActivity.class);
         intent.putExtra("url", song.getSongUri());

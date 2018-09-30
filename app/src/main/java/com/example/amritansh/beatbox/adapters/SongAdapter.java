@@ -11,6 +11,8 @@ import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.example.amritansh.beatbox.R;import com.example.amritansh.beatbox.interfaces.SongClickListner;
 import com.example.amritansh.beatbox.models.Song;
+import com.example.amritansh.beatbox.store.StorageUtil;
+
 import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -82,26 +84,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongsHolder> {
         @OnClick(R.id.row_container)
         void songRowClicked(){
 
-            songClickListner.onSongClickListner(song);
-
-//            final MediaPlayer mediaPlayer = new MediaPlayer();
-//            try {
-//                FileInputStream inputStream = new FileInputStream(song.getSongUri());
-//                mediaPlayer.setDataSource(inputStream.getFD());
-
-//                mediaPlayer.setDataSource(song.getSongUri());
-//                mediaPlayer.prepare();
-//
-//
-//                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//                    @Override
-//                    public void onPrepared(MediaPlayer mp) {
-//                        mediaPlayer.start();
-//                    }
-//                });
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            songClickListner.onSongClickListner(song, getAdapterPosition());
 
         }
 
