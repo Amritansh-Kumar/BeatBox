@@ -2,6 +2,7 @@ package com.example.amritansh.beatbox.fragments;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.amritansh.beatbox.Activities.PlaySongActivity;
 import com.example.amritansh.beatbox.R;
 import com.example.amritansh.beatbox.adapters.SongAdapter;
 import com.example.amritansh.beatbox.interfaces.SongClickListner;
@@ -44,6 +46,11 @@ public class SongsListFragment extends Fragment implements SongClickListner {
 
     public SongsListFragment() {
 
+    }
+
+    public static SongsListFragment getFragment(){
+        SongsListFragment fragment = new SongsListFragment();
+        return fragment;
     }
 
 
@@ -75,19 +82,26 @@ public class SongsListFragment extends Fragment implements SongClickListner {
     @Override
     public void onSongClickListner(Song song) {
 
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
+//        FragmentManager manager = getFragmentManager();
+//        FragmentTransaction transaction = manager.beginTransaction();
+//
+//        Fragment playSongFragment = new PlaySongFragment();
+//        Bundle bundle = new Bundle();
+//        bundle.putString("url", song.getSongUri());
+//        bundle.putString("title", song.getTitle());
+//        bundle.putString("artist", song.getartist());
+//        playSongFragment.setArguments(bundle);
+//
+//        transaction.replace(R.id.container, playSongFragment);
+//        transaction.addToBackStack(null);
+//        transaction.commit();
 
-        Fragment playSongFragment = new PlaySongFragment();
-        Bundle bundle = new Bundle();
-        bundle.putString("url", song.getSongUri());
-        bundle.putString("title", song.getTitle());
-        bundle.putString("artist", song.getartist());
-        playSongFragment.setArguments(bundle);
+        Intent intent = new Intent(getActivity(), PlaySongActivity.class);
+        intent.putExtra("url", song.getSongUri());
+        intent.putExtra("title", song.getTitle());
+        intent.putExtra("artist", song.getartist());
 
-        transaction.replace(R.id.container, playSongFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        startActivity(intent);
     }
 
     @Override

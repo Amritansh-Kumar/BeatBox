@@ -9,7 +9,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class PlaySongService extends Service implements MediaPlayer.OnCompletionListener{
+public class PlaySongService extends Service implements MediaPlayer.OnCompletionListener {
 
     private final MusicBinder musicBinder = new MusicBinder();
     private MediaPlayer mediaPlayer;
@@ -54,27 +54,27 @@ public class PlaySongService extends Service implements MediaPlayer.OnCompletion
         return musicBinder;
     }
 
-    public void playAudio(){
+    public void playAudio() {
         mediaPlayer.start();
     }
 
-    public int getCurrentPosition(){
+    public int getCurrentPosition() {
         return mediaPlayer.getCurrentPosition();
     }
 
-    public int getDuration(){
+    public int getDuration() {
         return mediaPlayer.getDuration();
     }
 
-    public void seekMediaPlayer(int progress){
+    public void seekMediaPlayer(int progress) {
         mediaPlayer.seekTo(progress);
     }
 
-    public MediaPlayer getMediaPlayer(){
+    public MediaPlayer getMediaPlayer() {
         return mediaPlayer;
     }
 
-    public void pauseAudio(){
+    public void pauseAudio() {
         mediaPlayer.pause();
     }
 

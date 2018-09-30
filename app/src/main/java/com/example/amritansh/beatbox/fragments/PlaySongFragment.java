@@ -53,6 +53,18 @@ public class PlaySongFragment extends Fragment {
     private boolean newPlay = true;
 
     public PlaySongFragment() {
+
+    }
+
+    public static PlaySongFragment getFragment(String songUrl, String songTitle, String songArtist){
+        Bundle bundle = new Bundle();
+        bundle.putString("url", songUrl);
+        bundle.putString("title", songTitle);
+        bundle.putString("artist", songArtist);
+        PlaySongFragment fragment = new PlaySongFragment();
+        fragment.setArguments(bundle);
+
+        return fragment;
     }
 
     @Override
@@ -70,6 +82,8 @@ public class PlaySongFragment extends Fragment {
         songTitle.setText(bundle.getString("title"));
         songArtist.setText(bundle.getString("artist"));
         String songUri = bundle.getString("url");
+
+        Log.d("console log", "songUri is : " + songUri );
 
         final Intent intent = new Intent(getActivity(), PlaySongService.class);
         intent.putExtra("music", songUri);
@@ -167,5 +181,11 @@ public class PlaySongFragment extends Fragment {
         super.onStop();
         seekHandler.removeCallbacksAndMessages(null);
         getActivity().unbindService(serviceConnection);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getActivity().finish();
     }
 }

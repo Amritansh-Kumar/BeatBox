@@ -1,29 +1,77 @@
-package com.example.amritansh.beatbox;
+package com.example.amritansh.beatbox.Activities;
 
 import android.Manifest;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.amritansh.beatbox.fragments.SongsListFragment;
+import com.example.amritansh.beatbox.R;
 
-public class MainActivity extends AppCompatActivity {
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
+public abstract class SingleFragmentActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_ID = 1;
 
+    @BindView(R.id.toolbar_main)
+    android.support.v7.widget.Toolbar toolbar;
+    @BindView(R.id.toolbar_text)
+    TextView toolbarTitle;
+
+    protected abstract int getLayoutResourceId();
+
+    protected abstract String getToolbarTitle();
+
+    protected abstract boolean showToolbar();
+
+    protected abstract int getFragmentContainerID();
+
+    protected abstract Fragment getFragment();
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(getLayoutResourceId());
+        ButterKnife.bind(this);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         checkForPermissions();
-        setContentView(R.layout.activity_main);
+
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = getFragment();
+        if (fragment != null) {
+            fm.beginTransaction()
+              .add(getFragmentContainerID(), fragment)
+              .addToBackStack(null)
+              .commit();
+        }
+
+        handleToolbar();
+    }
+
+    private void handleToolbar(){
+        if (showToolbar()) {
+            setSupportActionBar(toolbar);
+            toolbar.setVisibility(View.VISIBLE);
+            if (getToolbarTitle() != null) {
+                toolbarTitle.setVisibility(View.VISIBLE);
+                toolbarTitle.setText(getToolbarTitle());
+                }
+        } else {
+            toolbar.setVisibility(View.GONE);
+        }
     }
 
     private void checkForPermissions() {
@@ -40,10 +88,8 @@ public class MainActivity extends AppCompatActivity {
                                                                                  .READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_ID);
                 }
             }else {
-                loadFragment();
             }
         }else {
-            loadFragment();
         }
     }
 
@@ -62,21 +108,10 @@ public class MainActivity extends AppCompatActivity {
                                                                                  .READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_ID);
                 }
             } else {
-                loadFragment();
             }
         }else {
-            loadFragment();
+
         }
 
-    }
-
-    private void loadFragment(){
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-
-        Fragment songsListFrag = new SongsListFragment();
-        transaction.add(R.id.container, songsListFrag);
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 }
